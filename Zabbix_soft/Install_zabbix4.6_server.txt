@@ -31,7 +31,6 @@ useradd -g zabbix  -s /sbin/nologin zabbix
 [root@zabbix-server ~]# echo "ServerName localhost:80" >>/etc/httpd/conf/httpd.conf
 [root@zabbix-server ~]# /etc/init.d/httpd restart
 
-
 #创建zabbix数据库以及相关表
 [root@zabbix-server zabbix-2.4.6]# mysql -e "create database zabbix default charset utf8;"
 [root@zabbix-server zabbix-2.4.6]# mysql -e "grant all on zabbix.* to zabbix@localhost identified by 'zabbix';"
@@ -94,8 +93,6 @@ define('ZBX_GRAPH_FONT_NAME',  'simkai');
 [root@zabbix-server ~]# mysqldump zabbix >zabbix.sql
 [root@zabbix-server ~]# sed -i 's/latin1/utf8/g' zabbix.sql
 
-
-
     2.删除zabbix数据库
 
 mysql> drop database zabbix;
@@ -119,8 +116,6 @@ symbolic-links=0
 [mysqld_safe]
 log-error=/var/log/mysqld.log
 pid-file=/var/run/mysqld/mysqld.pid
-
-
 
     4.启动mysql并恢复zabbix数据库
 
