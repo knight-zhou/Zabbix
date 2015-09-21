@@ -64,7 +64,6 @@ useradd -g zabbix  -s /sbin/nologin zabbix
 
 #复制zabbix站点的文件到/var/www/html目录下
 [root@zabbix-server zabbix-2.4.6]# cp -r /root/zabbix-2.4.6/frontends/php/ /var/www/html/zabbix/
-[root@zabbix-server zabbix-2.4.6]# chown -R apache.apache /var/www/html/zabbix/
 
 [root@zabbix-server zabbix-2.4.6]# chkconfig zabbix_server on
 [root@zabbix-server zabbix-2.4.6]# chkconfig zabbix_agentd on
