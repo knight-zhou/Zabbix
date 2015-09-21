@@ -40,3 +40,6 @@
 [root@zabbix-c1 zabbix-2.4.6]# chkconfig zabbix_agentd on
 [root@zabbix-c1 zabbix-2.4.6]# service zabbix_agentd start
 Starting zabbix_agentd:                                    [  OK  ]
+################################################################################
+·þÎñÆ÷¶Ë²âÊÔkey£º
+/usr/local/zabbix/bin/zabbix_get -s192.168.2.95 -p10050 -ksystem.uname
