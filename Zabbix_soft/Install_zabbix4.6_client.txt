@@ -21,7 +21,7 @@
 [root@zabbix-c1 zabbix-2.4.6]# chown zabbix.zabbix /var/log/zabbix
 
 #复制zabbix_agentd启动文件到/etc/init.d目录下
-[root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/core/zabbix_agentd  /etc/init.d/
+[root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/zabbix_agentd  /etc/init.d/
 [root@zabbix-c1 zabbix-2.4.6]# chmod 755 /etc/init.d/zabbix_agentd
 
 #修改启动文件和配置软连接
@@ -31,8 +31,8 @@
 [root@zabbix-c1 zabbix-2.4.6]# ln -s /usr/local/zabbix/sbin/*  /usr/sbin/
 
 #/etc/zabbix/zabbix_agentd.conf,这里的IP地址写的是zabbix_server端的IP地址
-[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@Server=127.0.0.1@Server=192.168.3.28@g" /etc/zabbix/zabbix_agentd.conf
-[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@ServerActive=127.0.0.1@ServerActive=192.168.3.28:10051@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@Server=127.0.0.1@Server=192.168.2.94@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@ServerActive=127.0.0.1@ServerActive=192.168.2.94:10051@g" /etc/zabbix/zabbix_agentd.conf
 [root@zabbix-c1 zabbix-2.4.6]# sed -i "s@tmp/zabbix_agentd.log@var/log/zabbix/zabbix_agentd.log@g"  /etc/zabbix/zabbix_agentd.conf
 [root@zabbix-c1 zabbix-2.4.6]# sed -i "s@^# UnsafeUserParameters=0@UnsafeUserParameters=1\n@g" /etc/zabbix/zabbix_agentd.conf
 
