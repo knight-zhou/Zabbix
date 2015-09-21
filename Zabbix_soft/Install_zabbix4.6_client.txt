@@ -24,8 +24,6 @@
 [root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/core/zabbix_agentd  /etc/init.d/
 [root@zabbix-c1 zabbix-2.4.6]# chmod 755 /etc/init.d/zabbix_agentd
 
-
-
 #修改启动文件和配置软连接
 [root@zabbix-c1 zabbix-2.4.6]# sed -i "s@BASEDIR=/usr/local@BASEDIR=/usr/local/zabbix@g" /etc/init.d/zabbix_agentd
 [root@zabbix-c1 zabbix-2.4.6]# ln -s /usr/local/zabbix/etc/ /etc/zabbix
