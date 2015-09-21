@@ -1,0 +1,44 @@
+安装zabbix客户端如下：
+
+二.在client端192.168.2.95安装zabbix
+    安装基础软件包
+
+[root@zabbix-c1 ~]# yum install wget vim tree gcc gcc-c++ -y
+
+    安装zabbix_agentd
+
+[root@zabbix-c1 ~]# groupadd  zabbix
+[root@zabbix-c1 ~]# useradd  -g  zabbix  -s /sbin/nologin zabbix 
+[root@zabbix-c1 ~]# tar xf zabbix-2.4.6.tar.gz 
+[root@zabbix-c1 ~]# cd zabbix-2.4.6
+
+#开始编译安装zabbix客户端
+[root@zabbix-c1 zabbix-2.4.6]# ./configure --prefix=/usr/local/zabbix --enable-agent
+[root@zabbix-c1 zabbix-2.4.6]# make && make install
+
+#创建zabbix的日志目录
+[root@zabbix-c1 zabbix-2.4.6]# mkdir /var/log/zabbix
+[root@zabbix-c1 zabbix-2.4.6]# chown zabbix.zabbix /var/log/zabbix
+
+#复制zabbix_agentd启动文件到/etc/init.d目录下
+[root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/core/zabbix_agentd  /etc/init.d/
+[root@zabbix-c1 zabbix-2.4.6]# chmod 755 /etc/init.d/zabbix_agentd
+
+
+
+#修改启动文件和配置软连接
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@BASEDIR=/usr/local@BASEDIR=/usr/local/zabbix@g" /etc/init.d/zabbix_agentd
+[root@zabbix-c1 zabbix-2.4.6]# ln -s /usr/local/zabbix/etc/ /etc/zabbix
+[root@zabbix-c1 zabbix-2.4.6]# ln -s /usr/local/zabbix/bin/*  /usr/bin
+[root@zabbix-c1 zabbix-2.4.6]# ln -s /usr/local/zabbix/sbin/*  /usr/sbin/
+
+#/etc/zabbix/zabbix_agentd.conf,这里的IP地址写的是zabbix_server端的IP地址
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@Server=127.0.0.1@Server=192.168.3.28@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@ServerActive=127.0.0.1@ServerActive=192.168.3.28:10051@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@tmp/zabbix_agentd.log@var/log/zabbix/zabbix_agentd.log@g"  /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-c1 zabbix-2.4.6]# sed -i "s@^# UnsafeUserParameters=0@UnsafeUserParameters=1\n@g" /etc/zabbix/zabbix_agentd.conf
+
+#设置zabbix_agentd开机自动启动，并启动zabbix_agentd服务
+[root@zabbix-c1 zabbix-2.4.6]# chkconfig zabbix_agentd on
+[root@zabbix-c1 zabbix-2.4.6]# service zabbix_agentd start
+Starting zabbix_agentd:                                    [  OK  ]

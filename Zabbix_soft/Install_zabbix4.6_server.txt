@@ -1,0 +1,155 @@
+安装说明：（源码包安装最新的2.4.6）
+安装方法和2.4.0一样
+
+https://www.zabbix.com/documentation/2.4/manual/installation/install
+
+一：编译安装
+
+#yum -y install wget vim tree gcc gcc-c++ autoconf httpd php mysql mysql-server php-mysql httpd-manual mod_ssl mod_perl mod_auth_mysql php-gd php-xml php-mbstring php-ldap php-pear php-xmlrpc php-bcmath mysql-connector-odbc mysql-devel libdbi-dbd-mysql net-snmp net-snmp-devel curl-devel
+
+#wget http://nchc.dl.sourceforge.net/project/zabbix/ZABBIX%20Latest%20Stable/2.4.6/zabbix-2.4.6.tar.gz
+
+#./configure --prefix=/usr/local/zabbix --enable-server --enable-proxy --enable-agent --with-mysql --with-net-snmp --with-libcurl
+ make && make install
+##############################################################################################################
+二:添加zabbix用户和组
+useradd zabbix
+useradd -g zabbix  -s /sbin/nologin zabbix
+
+三.配置PHP参数
+    zabbix的运行需要特定的php参数支持，修改如下
+
+[root@zabbix-server ~]# sed -i "s@;date.timezone =@date.timezone = Asia/Shanghai@g" /etc/php.ini
+[root@zabbix-server ~]# sed -i "s@max_execution_time = 30@max_execution_time = 300@g" /etc/php.ini
+[root@zabbix-server ~]# sed -i "s@post_max_size = 8M@post_max_size = 32M@g" /etc/php.ini
+[root@zabbix-server ~]# sed -i "s@max_input_time = 60@max_input_time = 300@g" /etc/php.ini
+[root@zabbix-server ~]# sed -i "s@memory_limit = 128M@memory_limit = 128M@g" /etc/php.ini
+[root@zabbix-server ~]# sed -i "s@;mbstring.func_overload = 0@ambstring.func_overload = 2@g" /etc/php.ini
+
+    修改httpd的FQDN错误，重启httpd服务
+
+[root@zabbix-server ~]# echo "ServerName localhost:80" >>/etc/httpd/conf/httpd.conf
+[root@zabbix-server ~]# /etc/init.d/httpd restart
+
+
+#创建zabbix数据库以及相关表
+[root@zabbix-server zabbix-2.4.6]# mysql -e "create database zabbix default charset utf8;"
+[root@zabbix-server zabbix-2.4.6]# mysql -e "grant all on zabbix.* to zabbix@localhost identified by 'zabbix';"
+[root@zabbix-server zabbix-2.4.6]# mysql -uzabbix -pzabbix zabbix<./database/mysql/schema.sql
+[root@zabbix-server zabbix-2.4.6]# mysql -uzabbix -pzabbix zabbix<./database/mysql/images.sql
+[root@zabbix-server zabbix-2.4.6]# mysql -uzabbix -pzabbix zabbix<./database/mysql/data.sql
+
+#配置软连接和启动文件信息
+[root@zabbix-server zabbix-2.4.6]# mkdir /var/log/zabbix
+[root@zabbix-server zabbix-2.4.6]# chown zabbix.zabbix /var/log/zabbix
+[root@zabbix-server zabbix-2.4.6]# ln -s /usr/local/zabbix/etc/ /etc/zabbix
+[root@zabbix-server zabbix-2.4.6]# ln -s /usr/local/zabbix/bin/* /usr/bin/
+[root@zabbix-server zabbix-2.4.6]# ln -s /usr/local/zabbix/sbin/* /usr/sbin/ 
+[root@zabbix-server zabbix-2.4.6]# cp /root/zabbix-2.4.6/misc/init.d/fedora/core/zabbix_* /etc/init.d
+[root@zabbix-server zabbix-2.4.6]# chmod 755 /etc/init.d/zabbix_*
+
+#修改/etc/init.d目录下的zabbix_server和zabbix_agentd启动文件
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@BASEDIR=/usr/local@BASEDIR=/usr/local/zabbix@g" /etc/init.d/zabbix_server
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@BASEDIR=/usr/local@BASEDIR=/usr/local/zabbix@g" /etc/init.d/zabbix_agent
+
+#修改/etc/zabbix/zabbix_server.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@DBUser=root@DBUser=zabbix@g" /etc/zabbix/zabbix_server.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@#DBPassword=@DBPassword=zabbix@g" /etc/zabbix/zabbix_server.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@# DBPassword=@DBPassword=zabbix@g" /etc/zabbix/zabbix_server.conf
+
+#修改/etc/zabbix/zabbix_agentd.conf，这里的IP地址写的是zabbix_server的IP地址，即192.168.2.94
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@Server=127.0.0.1@Server=127.0.0.1,192.168.2.94@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@ServerActive=127.0.0.1@ServerActive=$IP:10051@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@tmp/zabbix_agentd.log@var/log/zabbix/zabbix_agentd.log@g" /etc/zabbix/zabbix_agentd.conf
+[root@zabbix-server zabbix-2.4.6]# sed -i "s@^# UnsafeUserParameters=0@UnsafeUserParameters=1\n@g" /etc/zabbix/zabbix_agentd.conf
+
+#复制zabbix站点的文件到/var/www/html目录下
+[root@zabbix-server zabbix-2.4.6]# cp -r /root/zabbix-2.4.6/frontends/php/ /var/www/html/zabbix/
+[root@zabbix-server zabbix-2.4.6]# chown -R apache.apache /var/www/html/zabbix/
+
+[root@zabbix-server zabbix-2.4.6]# chkconfig zabbix_server on
+[root@zabbix-server zabbix-2.4.6]# chkconfig zabbix_agentd on
+[root@zabbix-server zabbix-2.4.6]# service zabbix_server start
+Starting zabbix_server:                                    [  OK  ]
+[root@zabbix-server zabbix-2.4.6]# service zabbix_agentd start
+Starting zabbix_agentd:                                    [  OK  ]
+
+
+四.通过web站点配置zabbix
+    以上步骤配置完后通过http://192.168.2.94/zabbix/setup.php网页端进行后续配置 
+
+五.zabbix语言设置成中文后，有乱码解决如下
+    1.从windows下控制面板->字体->选择一种中文字库例如“楷体”
+    2.将字体上传至/var/www/html/zabbix/fonts目录下
+    3.修改zabbix页面管理的中文字体设置
+
+[root@zabbix-server zabbix-2.4.6]# vim /var/www/html/zabbix/include/defines.inc.php
+#修改如下2行
+define('ZBX_FONT_NAME', 'simkai');
+define('ZBX_GRAPH_FONT_NAME',  'simkai');
+
+如果修改完以上步骤后，zabbix界面的历史记录还是乱码的话，这是由于mysql的数据库字符集导致的，解决办法如下
+    1.备份zabbix数据库，并修改备份下来的数据文件
+
+[root@zabbix-server ~]# mysqldump zabbix >zabbix.sql
+[root@zabbix-server ~]# sed -i 's/latin1/utf8/g' zabbix.sql
+
+
+
+    2.删除zabbix数据库
+
+mysql> drop database zabbix;
+Query OK, 104 rows affected (0.42 sec)
+
+    3.关闭mysql数据库，设置默认字符集
+
+[root@zabbix-server ~]# service mysqld stop
+Stopping mysqld:                                           [  OK  ]
+
+#在mysql配置文件中添加字符集参数
+[root@zabbix-server ~]# vim /etc/my.cnf 
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+default-character-set = utf8
+user=mysql
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+[mysqld_safe]
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+
+
+    4.启动mysql并恢复zabbix数据库
+
+[root@zabbix-server ~]# service mysqld start
+Starting mysqld:                                           [  OK  ]
+[root@zabbix-server ~]# mysql
+mysql> create database zabbix;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> show create database zabbix;
++----------+-----------------------------------------------------------------+
+| Database | Create Database                                                 |
++----------+-----------------------------------------------------------------+
+| zabbix   | CREATE DATABASE `zabbix` /*!40100 DEFAULT CHARACTER SET utf8 */ |
++----------+-----------------------------------------------------------------+
+1 row in set (0.00 sec)
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| test               |
+| zabbix             |
++--------------------+
+4 rows in set (0.00 sec)
+
+mysql> use zabbix;
+Database changed
+mysql> source zabbix.sql;
+
+#####################################################################################
