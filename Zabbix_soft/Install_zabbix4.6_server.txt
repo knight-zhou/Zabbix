@@ -17,7 +17,7 @@ useradd zabbix
 useradd -g zabbix  -s /sbin/nologin zabbix
 
 三.配置PHP参数
-    zabbix的运行需要特定的php参数支持，修改如下
+    zabbix的运行需要特定的php参数支持，修改如下（环境检测时候会用到）
 
 [root@zabbix-server ~]# sed -i "s@;date.timezone =@date.timezone = Asia/Shanghai@g" /etc/php.ini
 [root@zabbix-server ~]# sed -i "s@max_execution_time = 30@max_execution_time = 300@g" /etc/php.ini
