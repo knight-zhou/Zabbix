@@ -21,7 +21,7 @@
 [root@zabbix-c1 zabbix-2.4.6]# chown zabbix.zabbix /var/log/zabbix
 
 #复制zabbix_agentd启动文件到/etc/init.d目录下
-[root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/zabbix_agentd  /etc/init.d/
+[root@zabbix-c1 zabbix-2.4.6]# cp misc/init.d/fedora/core/zabbix_agentd  /etc/init.d/
 [root@zabbix-c1 zabbix-2.4.6]# chmod 755 /etc/init.d/zabbix_agentd
 
 #修改启动文件和配置软连接

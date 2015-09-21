@@ -1,0 +1,70 @@
+一.zabbix语言设置成中文后，有乱码解决如下.(yum安装的httpd和mysql，亲自测试2.4.6没有中文乱码问题)
+    1.从windows下控制面板->字体->选择一种中文字库例如“楷体”
+    2.将字体上传至/var/www/html/zabbix/fonts目录下
+    3.修改zabbix页面管理的中文字体设置
+
+[root@zabbix-server zabbix-2.4.6]# vim /var/www/html/zabbix/include/defines.inc.php
+#修改如下2行
+define('ZBX_FONT_NAME', 'simkai');
+define('ZBX_GRAPH_FONT_NAME',  'simkai');
+
+如果修改完以上步骤后，zabbix界面的历史记录还是乱码的话，这是由于mysql的数据库字符集导致的，解决办法如下
+    1.备份zabbix数据库，并修改备份下来的数据文件
+
+[root@zabbix-server ~]# mysqldump zabbix >zabbix.sql
+[root@zabbix-server ~]# sed -i 's/latin1/utf8/g' zabbix.sql
+
+    2.删除zabbix数据库
+
+mysql> drop database zabbix;
+Query OK, 104 rows affected (0.42 sec)
+
+    3.关闭mysql数据库，设置默认字符集
+
+[root@zabbix-server ~]# service mysqld stop
+Stopping mysqld:                                           [  OK  ]
+
+#在mysql配置文件中添加字符集参数
+[root@zabbix-server ~]# vim /etc/my.cnf 
+[mysqld]
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+default-character-set = utf8
+user=mysql
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+[mysqld_safe]
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+
+    4.启动mysql并恢复zabbix数据库
+
+[root@zabbix-server ~]# service mysqld start
+Starting mysqld:                                           [  OK  ]
+[root@zabbix-server ~]# mysql
+mysql> create database zabbix;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> show create database zabbix;
++----------+-----------------------------------------------------------------+
+| Database | Create Database                                                 |
++----------+-----------------------------------------------------------------+
+| zabbix   | CREATE DATABASE `zabbix` /*!40100 DEFAULT CHARACTER SET utf8 */ |
++----------+-----------------------------------------------------------------+
+1 row in set (0.00 sec)
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| test               |
+| zabbix             |
++--------------------+
+4 rows in set (0.00 sec)
+
+mysql> use zabbix;
+Database changed
+mysql> source zabbix.sql;
+#####################################################################################
