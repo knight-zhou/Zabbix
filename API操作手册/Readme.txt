@@ -1,2 +1,1 @@
-
-zabbix api handbook
+首先要获取key值，然后再根据key值取请求接口
