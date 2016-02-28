@@ -23,6 +23,7 @@ for key in header:
     request.add_header(key,header[key])
     result = urllib2.urlopen(request)
     #print result
+    #json解码
     a = json.loads(result.read())
     print a
     print a['result']
